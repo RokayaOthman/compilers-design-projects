@@ -1,3 +1,5 @@
+print("Running lex-scanner...")
+
 class Token:
     def __init__(self, lexeme : str, token_type):
         self.lexeme = lexeme
@@ -71,59 +73,51 @@ class Scanner:
         tokens = []
         
         # the main loop
-        while right < len_str and left <= right :
             
-            if right < len_str and not Scanner.is_delimiter(stringCode[right]):
+        while right < len_str:
+            if not Scanner.is_delimiter(stringCode[right]):
                 right += 1
-            
-            if ((right < len_str and Scanner.is_delimiter(stringCode[right])) and left != right) or (right == len_str and left != right):
+                continue
+
+            # We hit a delimiter or end of token
+            if left != right:
                 sub_str = Scanner.sub_string(stringCode, left, right - 1).strip()
 
-                # choosing the type of this substring
                 if Scanner.is_keyword(sub_str):
-                    token = Token(sub_str, 'keyword')
-                    tokens.append(token)
-                
+                    tokens.append(Token(sub_str, 'keyword'))
                 elif Scanner.is_integer(sub_str):
-                    token = Token(sub_str, 'integer')
-                    tokens.append(token)
-                
+                    tokens.append(Token(sub_str, 'integer'))
                 elif Scanner.is_real_number(sub_str):
-                    token = Token(sub_str, 'real number')
-                    tokens.append(token)
-
+                    tokens.append(Token(sub_str, 'real number'))
                 elif Scanner.valid_identifier(sub_str):
-                    token = Token(sub_str, 'identifier')
-                    tokens.append(token)
+                    tokens.append(Token(sub_str, 'identifier'))
 
+            ch = stringCode[right]
+            next_ch = stringCode[right + 1] if right + 1 < len_str else ''
+
+            if ch + next_ch in double_ops:
+                tokens.append(Token(ch + next_ch, 'operator'))
+                right += 2
+                left = right
+                continue
+            elif Scanner.is_operator(ch):
+                tokens.append(Token(ch, 'operator'))
                 right += 1
                 left = right
-
-            elif right < len_str and Scanner.is_delimiter(stringCode[right]):
-                ch = stringCode[right]
-                
-    
-                next_ch = stringCode[right + 1] if right + 1 < len_str else ''
-                    
-                if ch + next_ch in double_ops :
-                    token = Token(ch + next_ch, 'operator')
-                    tokens.append(token)
-                    right += 2
-                    left = right
-                    continue
-
-                elif Scanner.is_operator(ch):
-                    token = Token(ch, 'operator')
-                    tokens.append(token)
-                    right += 1
-                    left = right
-                    continue
+                continue
+            else:
+                if ch.strip():  # ignore whitespace
+                    tokens.append(Token(ch, 'delimiter'))
+                right += 1
+                left = right
 
         return tokens
 
 def scan_c_file(c_file):
     with open(c_file, "r", encoding="utf-8") as f:
         content = f.read()
+        print("File content:", repr(content))
+
     tokens = Scanner.scan_tokens(content)
     return tokens
     
@@ -132,6 +126,7 @@ def main():
     tokens = scan_c_file(c_file)
     for token in tokens :
         print(token)
+    
             
 if __name__ == "__main__":
     main()
