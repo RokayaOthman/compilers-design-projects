@@ -92,7 +92,7 @@ class Scanner:
 
             ch = stringCode[right]
             next_ch = stringCode[right + 1] if right + 1 < len_str else ''
-            double_ops = ['++', '--', '==', '<=', '>=', '!=', '&&', '||']
+            double_ops = ['--', '++', '==', '<=', '>=', '!=', '&&', '||']
 
             if ch + next_ch in double_ops:
                 tokens.append(Token(ch + next_ch, 'operator'))
