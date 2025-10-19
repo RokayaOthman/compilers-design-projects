@@ -1,11 +1,9 @@
-print("Running lex-scanner...")
-
 class Token:
     def __init__(self, lexeme : str, token_type):
         self.lexeme = lexeme
         self.token_type = token_type
     def __str__(self):
-        return f"({self.lexeme}, {self.token_type})"
+        return f"({self.lexeme} => {self.token_type})"
 
 class Scanner:
     def __init__(self, text):
@@ -48,6 +46,7 @@ class Scanner:
                 return False
         return True
     
+    # representing floating numbers
     @staticmethod
     def is_real_number(text):    
         if not text :
@@ -66,12 +65,12 @@ class Scanner:
     # returns a list of objects (lexeme , tokenType)
     @staticmethod
     def scan_tokens(stringCode):
-        double_ops = ['++', '--', '==', '<=', '>=', '!=', '&&', '||']
         left = 0
         right = 0
         len_str = len(stringCode)
         tokens = []
-        
+        double_ops = ['++', '--', '==', '<=', '>=', '!=', '&&', '||']
+
         # the main loop
             
         while right < len_str:
@@ -116,7 +115,6 @@ class Scanner:
 def scan_c_file(c_file):
     with open(c_file, "r", encoding="utf-8") as f:
         content = f.read()
-        print("File content:", repr(content))
 
     tokens = Scanner.scan_tokens(content)
     return tokens
