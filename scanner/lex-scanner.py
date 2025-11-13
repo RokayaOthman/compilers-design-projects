@@ -102,7 +102,10 @@ class Scanner:
                 sub_str = Scanner.sub_string(stringCode, left, right - 1).strip()
 
                 if Scanner.is_keyword(sub_str):
-                    tokens.append(Token(sub_str, 'keyword'))
+                    important_keywords = {'int' : 'int keyword',
+                                          'return' : 'return keyword'}
+                    token_type = important_keywords.get(sub_str, 'keyword')
+                    tokens.append(Token(sub_str, token_type))
                 elif Scanner.is_integer(sub_str):
                     tokens.append(Token(sub_str, 'integer'))
                 elif Scanner.is_real_number(sub_str):
@@ -124,10 +127,24 @@ class Scanner:
                 left = right
                 continue
             else:
+                delimiter_types = {
+                    '{': 'open brace',
+                    '}': 'close brace',
+                    '(': 'open parenthesis',
+                    ')': 'close parenthesis',
+                    '[': 'open bracket',
+                    ']': 'close bracket',
+                    ',': 'comma',
+                    ';': 'semicolon',
+                    '\n': 'newline',
+                    '\t': 'tab',
+                }
+                token_type = delimiter_types.get(ch, 'delimiter')
                 if ch.strip():  # ignore whitespace
-                    tokens.append(Token(ch, 'delimiter'))
+                    tokens.append(Token(ch, token_type))
                 right += 1
                 left = right
+
 
         return tokens
 
