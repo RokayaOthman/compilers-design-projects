@@ -115,7 +115,7 @@ class Scanner:
                     ')': 'close parenthesis',
                     '[': 'open bracket',
                     ']': 'close bracket',
-                    ',': 'comma',
+                    ',': '`comm`a',
                     ';': 'semicolon',
                     '\n': 'newline',
                     '\t': 'tab',
