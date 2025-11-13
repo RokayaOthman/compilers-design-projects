@@ -25,7 +25,7 @@ class Parser:
         ##compare current token type with 
         ## the passed token type if they match :
         ## eat (Accept as Valid) the current token and assign the next token to the self.current_token,
-        # otherwise raise an exception
+        ## otherwise raise an exception
 
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
