@@ -1,15 +1,13 @@
-int main()
-{
-    int a = 5;
-    a++;
-    float b = 10.5;
-    if (a < b)
-    {
-        a = a + 1;
-    }
-    else
-    {
-        b = b - 1.0;
+int main() {
+    int x,y;
+    // This is a single-line comment
+    if (x == 42) {
+        /* This is
+           a block
+           comment */
+        x = x-3;
+    } else {
+        y = 3.1; // Another comment
     }
     return 0;
 }

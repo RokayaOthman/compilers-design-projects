@@ -1,9 +1,11 @@
 class Token:
-    def __init__(self, lexeme : str, token_type):
+    def __init__(self, lexeme: str, token_type):
         self.lexeme = lexeme
         self.token_type = token_type
+
     def __str__(self):
         return f"({self.lexeme} => {self.token_type})"
+
 
 class Scanner:
     def __init__(self, text):
@@ -36,32 +38,30 @@ class Scanner:
         if not text or text[0].isdigit() or Scanner.is_delimiter(text[0]):
             return False
         return True
-    
+
     @staticmethod
     def is_integer(text):
         if not text:
             return False
         for i in range(len(text)):
-            if not text[i].isdigit() and not (text[i] == '-' and i == 0) :
+            if not text[i].isdigit() and not (text[i] == '-' and i == 0):
                 return False
         return True
-    
-    # representing floating numbers
+
     @staticmethod
-    def is_real_number(text):    
-        if not text :
+    def is_real_number(text):
+        if not text:
             return False
         try:
             float(text)
-            return '.' in text #this ensures it has a '.' in it
+            return '.' in text  # this ensures it has a '.' in it
         except ValueError:
             return False
-    
+
     @staticmethod
     def sub_string(text, left, right):
-        return text[left : right + 1]
+        return text[left: right + 1]
 
-    
     # returns a list of objects (lexeme , tokenType)
     @staticmethod
     def scan_tokens(stringCode):
@@ -72,8 +72,27 @@ class Scanner:
         double_ops = ['--', '++', '==', '<=', '>=', '!=', '&&', '||']
 
         # the main loop
-            
         while right < len_str:
+            # Handle comments before anything else
+            if stringCode[right] == '/' and right + 1 < len_str:
+                # Single-line comment //
+                if stringCode[right + 1] == '/':
+                    right += 2
+                    while right < len_str and stringCode[right] != '\n':
+                        right += 1
+                    # move left pointer to after the comment
+                    left = right
+                    continue
+
+                # Multi-line comment /* ... */
+                elif stringCode[right + 1] == '*':
+                    right += 2
+                    while right + 1 < len_str and not (stringCode[right] == '*' and stringCode[right + 1] == '/'):
+                        right += 1
+                    right += 2  # skip the closing */
+                    left = right
+                    continue
+
             if not Scanner.is_delimiter(stringCode[right]):
                 right += 1
                 continue
@@ -129,26 +148,21 @@ class Scanner:
 
         return tokens
 
+
 def scan_c_file(c_file):
     with open(c_file, "r", encoding="utf-8") as f:
         content = f.read()
 
     tokens = Scanner.scan_tokens(content)
     return tokens
-    
+
+
 def main():
-    c_file = 'cfile.c'  
+    c_file = 'cfile.c'
     tokens = scan_c_file(c_file)
-    for token in tokens :
+    for token in tokens:
         print(token)
-    
-            
+
+
 if __name__ == "__main__":
     main()
-
-
-
-
-        
-        
-
