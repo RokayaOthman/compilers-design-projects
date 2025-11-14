@@ -6,7 +6,7 @@ class Token:
     def __str__(self):
         return f"({self.lexeme} => {self.token_type})"
 
-################
+##############
 class Scanner:
     def __init__(self, text):
         self.text = text
