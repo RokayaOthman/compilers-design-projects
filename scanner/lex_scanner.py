@@ -1,11 +1,26 @@
+INTEGER = 'INTEGER'
+PLUS = 'PLUS'
+MINUS = 'MINUS'
+MUL = 'MUL'
+DIV = 'DIV'
+LPAREN = 'LPAREN'
+RPAREN = 'RPAREN'
+EOF = 'EOF'
+
 class Token:
     def __init__(self, lexeme: str, token_type):
-        self.lexeme = lexeme
-        self.token_type = token_type
+        self.lexeme = lexeme 
+        self.type = token_type
+        # handle numbers
+        if token_type == 'integer':
+            self.value = int(lexeme)
+        elif token_type == 'real number':
+            self.value = float(lexeme)
+        else:
+            self.value = lexeme
 
     def __str__(self):
         return f"({self.lexeme} => {self.token_type})"
-
 
 class Scanner:
     def __init__(self, text):
@@ -146,23 +161,55 @@ class Scanner:
                 left = right
 
 
+         # Handle any remaining content after the loop ends
+        if left < len_str:
+            remaining_sub_str = Scanner.sub_string(stringCode, left, len_str - 1).strip()
+            if remaining_sub_str:
+                if Scanner.is_keyword(remaining_sub_str):
+                    important_keywords = {'int' : 'int keyword',
+                                        'return' : 'return keyword'}
+                    token_type = important_keywords.get(remaining_sub_str, 'keyword')
+                    tokens.append(Token(remaining_sub_str, token_type))
+                elif Scanner.is_integer(remaining_sub_str):
+                    tokens.append(Token(remaining_sub_str, 'integer'))
+                elif Scanner.is_real_number(remaining_sub_str):
+                    tokens.append(Token(remaining_sub_str, 'real number'))
+                elif Scanner.valid_identifier(remaining_sub_str):
+                    tokens.append(Token(remaining_sub_str, 'identifier'))
+
         return tokens
 
+class Lexer :
+    
+    def __init__(self, text):
+        tokens = Scanner.scan_tokens(text)
+        self.tokens = []
+        for token in tokens:
+             # Map the scanner token types to parser token types
+            if token.type == 'integer':
+                self.tokens.append(Token(token.lexeme, INTEGER))
+            elif token.lexeme == '+':
+                self.tokens.append(Token(token.lexeme, PLUS))
+            elif token.lexeme == '-':
+                self.tokens.append(Token(token.lexeme, MINUS))
+            elif token.lexeme == '*':
+                self.tokens.append(Token(token.lexeme, MUL))
+            elif token.lexeme == '/':
+                self.tokens.append(Token(token.lexeme, DIV))
+            elif token.lexeme == '(':
+                self.tokens.append(Token(token.lexeme, LPAREN))
+            elif token.lexeme == ')':
+                self.tokens.append(Token(token.lexeme, RPAREN)) 
 
-def scan_c_file(c_file):
-    with open(c_file, "r", encoding="utf-8") as f:
-        content = f.read()
+            # Add end-of-file token
+        self.tokens.append(Token('', EOF))
+        self.pos = 0
 
-    tokens = Scanner.scan_tokens(content)
-    return tokens
-
-
-def main():
-    c_file = 'cfile.c'
-    tokens = scan_c_file(c_file)
-    for token in tokens:
-        print(token)
-
-
-if __name__ == "__main__":
-    main()
+    def get_next_token(self):
+        if self.pos < len(self.tokens):
+            token = self.tokens[self.pos]
+            self.pos += 1
+            return token
+        else:
+            # Return EOF token if we've reached the end
+            return Token('', EOF)
