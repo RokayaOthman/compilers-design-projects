@@ -33,7 +33,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
    * Tokenize the input code through the `scan_tokens()` method
 
 3. **`scan_c_file()` function**
-   Reads a `.c` file and passes its content to the scanner.
+   Reads a `.c` file and passes its content to the scanner
 
 4. **`main()` function**
    Loads a file named `cfile.c` (you can change this), runs the scanner, and prints all tokens in the format:
