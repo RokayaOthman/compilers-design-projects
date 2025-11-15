@@ -20,7 +20,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
 ## ⚙️ How It Works
 
 1. **`Token` class**
-   Represents a token with two attributes:
+   Represents a token with 2 attributes:
 
    * `lexeme`: the actual string from the source code
    * `token_type`: the category (keyword, operator, identifier, etc.)
