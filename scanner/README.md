@@ -96,5 +96,5 @@ This project demonstrates how a scanner can be implemented using basic Python lo
    ```bash
    python lex-scanner.py
    ```
-3. View the tokens printed in your terminal.
+3. View the tokens printed in your terminal
 
