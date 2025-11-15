@@ -98,3 +98,11 @@ This project demonstrates how a scanner can be implemented using basic Python lo
    ```
 3. View the tokens printed in your terminal.
 
+
+
+
+
+
+
+
+..
