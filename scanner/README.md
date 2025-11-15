@@ -30,7 +30,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
 
    * Detect delimiters, keywords, operators, integers, and real numbers.
    * Extract substrings between delimiters
-   * Tokenize the input code through the `scan_tokens()` method
+   * Tokenize the input code through the `scan_tokens()` method.
 
 3. **`scan_c_file()` function**
    Reads a `.c` file and passes its content to the scanner
