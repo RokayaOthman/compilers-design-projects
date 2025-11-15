@@ -90,7 +90,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
 ---
 ## ▶️ Running the Program
 
-1. Save your C source code as `cfile.c` in the same directory as the script.
+1. Save your C source code as `cfile.c` in the same directory as the script
 2. Run the Python scanner:
 
    ```bash
