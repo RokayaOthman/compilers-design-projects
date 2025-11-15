@@ -1,6 +1,6 @@
 # Lexical Scanner for C Code
 
-This Python program implements **simple lexical analyzer (scanner)** for C source code. It reads  C file, identifies each lexeme (token), classifies it (e.g., keyword, identifier, operator, number, delimiter), and prints the result.
+This Python program implements **simple lexical analyzer (scanner)** for C source code. It reads  C file, identifies each lexeme (token), classifies it (e.g., keyword, identifier, operator, numbers, delimiter), and prints the result.
 
 ## Overview
 
