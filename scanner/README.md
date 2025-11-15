@@ -28,7 +28,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
 2. **`Scanner` class**
    Contains static helper functions to:
 
-   * Detect delimiters, keywords, operators, integers, and real numbers
+   * Detect delimiters, keywords, operators, integers, and real numbers.
    * Extract substrings between delimiters
    * Tokenize the input code through the `scan_tokens()` method
 
