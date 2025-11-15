@@ -26,7 +26,7 @@ This project demonstrates how a scanner can be implemented using basic Python lo
    * `token_type`: the category (keyword, operator, identifier, etc.)
 
 2. **`Scanner` class**
-   Contains static helper functions to:
+   Contains static helper functions to
 
    * Detect delimiters, keywords, operators, integers, and real numbers.
    * Extract substrings between delimiters.
