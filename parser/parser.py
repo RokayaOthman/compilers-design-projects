@@ -28,6 +28,7 @@ class Num:
         self.token = token
         self.value = token.value
 
+
 class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
@@ -39,11 +40,12 @@ class Parser:
     def eat(self, token_type):
         ##compare current token type with 
         ## the passed token type if they match :
-        ## eat (Accept as Valid) the current token and assign the next token to the self.current_token,
+        ## (Accept as Valid) the current token and assign the next token to the self.current_token,
         ## otherwise raise an exception
 
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
+            
         else:
             self.error()
     
@@ -52,6 +54,7 @@ class Parser:
         token = self.current_token
         if token.type == INTEGER:
             self.eat(INTEGER)
+            print('an integer')
             return Num(token)
         elif token.type == LPAREN: # ( 
             self.eat(LPAREN)
@@ -102,7 +105,7 @@ class Parser:
 
 
 class NodeVisitor:
-    # This class is to traverse or visit nodes in AST
+    # This class is to traverse or visit nodes in AST using the visitor design pattern  
     def visit(self, node):
         method_name = 'visit_' + type(node).__name__
         visitor = getattr(self, method_name, self.generic_visit)
@@ -114,20 +117,27 @@ class NodeVisitor:
 class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser 
-
-    
+   
     def visit_BinOp(self, node):
+        # Post-order: Visit children → process node
         left_val = int(self.visit(node.left))
         right_val = int(self.visit(node.right))
-        if node.op.type == PLUS:
-            return left_val + right_val
-        elif node.op.type == MINUS:
-            return left_val - right_val
-        elif node.op.type == MUL:
-            return left_val * right_val
-        elif node.op.type == DIV:
-            return left_val / right_val
-        
+        # if node.op.type == PLUS:
+        #     return left_val + right_val
+        # elif node.op.type == MINUS:
+        #     return left_val - right_val
+        # elif node.op.type == MUL:
+        #     return left_val * right_val
+        # elif node.op.type == DIV:
+        #     return left_val / right_val
+        operations = {
+                PLUS: lambda x , y : x + y,
+                MINUS: lambda x , y : x - y ,
+                MUL : lambda x , y : x * y,
+                DIV : lambda x , y : x / y
+        }
+        return operations[node.op.type](left_val, right_val)
+    
     def visit_Num(self, node):
         return node.value
     
@@ -136,9 +146,10 @@ class Interpreter(NodeVisitor):
         return self.visit(tree)
 
 def main():
+
     while True:
         try:
-                text = input('spi> ')
+                text = input('input> ')
         except EOFError:
             break
         if not text:

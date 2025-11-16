@@ -207,7 +207,7 @@ class Lexer :
 
     def get_next_token(self):
         if self.pos < len(self.tokens):
-            token = self.tokens[self.pos]
+            token = self.tokens[self.pos]   
             self.pos += 1
             return token
         else:
