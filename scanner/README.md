@@ -2,7 +2,7 @@
 
 This program implements **simple lexical analyzer (scanner)** for  C source code. It reads a C file, identifies each lexeme (token), classifies it (e.g., keyword, identifier, operator, numbers, delimiter), and prints the result.
 
-## Overview
+## Overview : 
 
 A **lexical scanner** (or lexer) is the first phase of a compiler.
 It reads raw source code and breaks it into **tokens** — the smallest meaningful units such as:
