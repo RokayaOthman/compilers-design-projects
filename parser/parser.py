@@ -26,6 +26,12 @@ class BinOp:
     def __str__(self):
         return str(self.token)
 
+class UnaryOp():
+    def __init__(self, op, expr):
+        self.token = self.op = op 
+        self.expr = expr # represents an AST node
+
+
 class Num:
     def __init__(self,token):
         self.token = token
@@ -53,11 +59,20 @@ class Parser:
             self.error()
     
     def factor(self):
-        """factor : INTEGER | (expr)"""
+        """OLD : factor : INTEGER | (expr)"""
+        """ UPDATED : factor : (plus | minus) factor | integer | (expr)"""
         token = self.current_token
-        if token.type == INTEGER:
+        if token.type == PLUS:
+            self.eat(PLUS)
+            node = UnaryOp(token, self.factor())
+            return node
+        
+        elif token.type == MINUS:
+            self.eat(MINUS)
+            node = UnaryOp(token, self.factor())
+            return node
+        elif token.type == INTEGER:
             self.eat(INTEGER)
-            print('an integer')
             return Num(token)
         elif token.type == LPAREN: # ( 
             self.eat(LPAREN)
@@ -123,8 +138,11 @@ class Interpreter(NodeVisitor):
    
     def visit_BinOp(self, node):
         # Post-order: Visit children → process node
-        left_val = int(self.visit(node.left))
-        right_val = int(self.visit(node.right))
+        print(f"Visiting BinOp with op: {node.op.type}")
+        left_val = (self.visit(node.left))
+        print(f"left value: {left_val} ")
+        right_val = (self.visit(node.right))
+        print(f"right value: {right_val}")
         # if node.op.type == PLUS:
         #     return left_val + right_val
         # elif node.op.type == MINUS:
@@ -139,10 +157,26 @@ class Interpreter(NodeVisitor):
                 MUL : lambda x , y : x * y,
                 DIV : lambda x , y : x / y
         }
-        return operations[node.op.type](left_val, right_val)
+        result = operations[node.op.type](left_val, right_val)
+        print(f"BinOp result: {result}")
+        return result
+    
+    def visit_UnaryOp(self, node):
+        print(f"Visiting UnaryOp with op: {node.op.type}")
+        op = node.op.type
+        if op == PLUS :
+            result =  +1 * self.visit(node.expr)
+        elif op == MINUS:
+            result =  -1 * self.visit(node.expr)
+        print(f"UnaryOp result: {result}")
+        return result
+                
     
     def visit_Num(self, node):
-        return node.value
+        print(f"Visiting Num: {node.value}")
+        result = int(node.value)
+        print(f"Num result: {result}")
+        return result
     
     def interpret(self):
         tree = self.parser.parse()
