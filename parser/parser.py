@@ -23,6 +23,9 @@ class BinOp:
         self.token = self.op = op
         self.right = right
 
+    def __str__(self):
+        return str(self.token)
+
 class Num:
     def __init__(self,token):
         self.token = token
