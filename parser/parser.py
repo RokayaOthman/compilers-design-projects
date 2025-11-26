@@ -51,7 +51,8 @@ class Parser:
     
     def factor(self):
         """OLD : factor : INTEGER | (expr)"""
-        """ UPDATED : factor : (plus | minus) factor | integer | (expr)"""
+        """ UPDATED : factor : (PLUS | MINUS) factor | power """
+        
         token = self.current_token
         if token.type == T.PLUS:
             self.eat(T.PLUS)
@@ -95,8 +96,11 @@ class Parser:
     def expr(self):
         """
         expr   : term ((PLUS | MINUS) term)*
-        term   : factor ((MUL | DIV) factor)*
+        term   : factor ((MUL | DIV | MOD) factor) | power*
         factor : INTEGER | LPAREN expr RPAREN
+
+        power  : handles factor ** factor 
+        atom   : INTEGER | LPAREN expr RPAREN
         """
         node = self.term()
 
@@ -155,7 +159,8 @@ class Interpreter(NodeVisitor):
             T.MINUS: lambda x, y: x - y,
             T.MUL: lambda x, y: x * y,
             T.DIV: lambda x, y: x / y,
-            T.MOD: lambda x ,y: x % y
+            T.MOD: lambda x,y: x % y,
+            T.POWER: lambda x, y: x ** y
         }
         result = operations[node.op.type](left_val, right_val)
         print(f"BinOp result: {result}")
