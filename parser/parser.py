@@ -49,6 +49,26 @@ class Parser:
         else:
             self.error()
     
+    def atom (self) :
+        token = self.current_token
+        if token.type == T.INTEGER:
+            self.eat(T.INTEGER)
+            return Num(token)
+        elif token.type == T.LPAREN: # ( 
+            self.eat(T.LPAREN)
+            node = self.expr() # expr
+            self.eat(T.RPAREN) # )
+            return node
+
+
+    def power(self):
+        node = self.atom()
+        token = self.current_token
+        if token.type == T.POWER:
+            self.eat(T.POWER) # ← Consume the ** operator
+            node = BinOp(left=node, op=token, right=self.power())
+        return node
+    
     def factor(self):
         """OLD : factor : INTEGER | (expr)"""
         """ UPDATED : factor : (PLUS | MINUS) factor | power """
@@ -58,19 +78,12 @@ class Parser:
             self.eat(T.PLUS)
             node = UnaryOp(token, self.factor())
             return node
-        
         elif token.type == T.MINUS:
             self.eat(T.MINUS)
             node = UnaryOp(token, self.factor())
             return node
-        elif token.type == T.INTEGER:
-            self.eat(T.INTEGER)
-            return Num(token)
-        elif token.type == T.LPAREN: # ( 
-            self.eat(T.LPAREN)
-            node = self.expr() # expr
-            self.eat(T.RPAREN) # )
-            return node
+        else:
+            return self.power()
         
     def term(self):
         """term : factor ((MUL | DIV) factor)*"""
