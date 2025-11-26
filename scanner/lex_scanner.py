@@ -1,11 +1,7 @@
-INTEGER = 'INTEGER'
-PLUS = 'PLUS'
-MINUS = 'MINUS'
-MUL = 'MUL'
-DIV = 'DIV'
-LPAREN = 'LPAREN'
-RPAREN = 'RPAREN'
-EOF = 'EOF'
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tokens import TokenType as T
 
 class Token:
     def __init__(self, lexeme: str, token_type):
@@ -28,7 +24,7 @@ class Scanner:
 
     @staticmethod
     def is_delimiter(ch):
-        delimiters = ' +-*/ ,;><=()[]{}\n\t'
+        delimiters = ' +-*/ ,;><=()[]{}\n\t%'
         return ch in delimiters
 
     @staticmethod
@@ -45,7 +41,7 @@ class Scanner:
 
     @staticmethod
     def is_operator(ch):
-        operators = '+-*/><='
+        operators = '+-*/><=%'
         return ch in operators
 
     @staticmethod
@@ -84,7 +80,7 @@ class Scanner:
         right = 0
         len_str = len(stringCode)
         tokens = []
-        double_ops = ['--', '++', '==', '<=', '>=', '!=', '&&', '||']
+        double_ops = ['==', '<=', '>=', '!=', '&&', '||']
 
         # the main loop
         while right < len_str:
@@ -182,28 +178,33 @@ class Scanner:
 class Lexer :
     
     def __init__(self, text):
-        tokens = Scanner.scan_tokens(text)
-        self.tokens = []
-        for token in tokens:
-             # Map the scanner token types to parser token types
-            if token.type == 'integer':
-                self.tokens.append(Token(token.lexeme, INTEGER))
-            elif token.lexeme == '+':
-                self.tokens.append(Token(token.lexeme, PLUS))
-            elif token.lexeme == '-':
-                self.tokens.append(Token(token.lexeme, MINUS))
-            elif token.lexeme == '*':
-                self.tokens.append(Token(token.lexeme, MUL))
-            elif token.lexeme == '/':
-                self.tokens.append(Token(token.lexeme, DIV))
-            elif token.lexeme == '(':
-                self.tokens.append(Token(token.lexeme, LPAREN))
-            elif token.lexeme == ')':
-                self.tokens.append(Token(token.lexeme, RPAREN)) 
-
+            tokens = Scanner.scan_tokens(text)
+            print(f"Scanner tokens: {[(t.lexeme, t.type) for t in tokens]}")  # DEBUG
+            self.tokens = []
+            for token in tokens:
+                # Map the scanner token types to parser token types
+                if token.type == 'integer':
+                    self.tokens.append(Token(token.lexeme, T.INTEGER))
+                elif token.lexeme == '+':
+                    self.tokens.append(Token(token.lexeme, T.PLUS))
+                elif token.lexeme == '-':
+                    self.tokens.append(Token(token.lexeme, T.MINUS))
+                elif token.lexeme == '*':
+                    self.tokens.append(Token(token.lexeme, T.MUL))
+                elif token.lexeme == '/':
+                    self.tokens.append(Token(token.lexeme, T.DIV))
+                elif token.lexeme == '%':
+                    self.tokens.append(Token(token.lexeme, T.MOD))
+                elif token.lexeme == '(':
+                    self.tokens.append(Token(token.lexeme, T.LPAREN))
+                elif token.lexeme == ')':
+                    self.tokens.append(Token(token.lexeme, T.RPAREN))
+                
+            
             # Add end-of-file token
-        self.tokens.append(Token('', EOF))
-        self.pos = 0
+            self.tokens.append(Token('', T.EOF))
+            self.pos = 0
+
 
     def get_next_token(self):
         if self.pos < len(self.tokens):
@@ -212,4 +213,4 @@ class Lexer :
             return token
         else:
             # Return EOF token if we've reached the end
-            return Token('', EOF)
+            return Token('', T.EOF)

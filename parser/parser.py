@@ -2,17 +2,8 @@ import sys
 import os
 # Add the parent directory to Python path so it can find the scanner module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from tokens import TokenType as T
 from scanner.lex_scanner import Lexer
-INTEGER = 'INTEGER'
-PLUS = 'PLUS'
-MINUS = 'MINUS'
-MUL = 'MUL'
-DIV = 'DIV'
-LPAREN = 'LPAREN'
-RPAREN = 'RPAREN'
-EOF = 'EOF'
-
 class AST:
     pass
 
@@ -62,22 +53,22 @@ class Parser:
         """OLD : factor : INTEGER | (expr)"""
         """ UPDATED : factor : (plus | minus) factor | integer | (expr)"""
         token = self.current_token
-        if token.type == PLUS:
-            self.eat(PLUS)
+        if token.type == T.PLUS:
+            self.eat(T.PLUS)
             node = UnaryOp(token, self.factor())
             return node
         
-        elif token.type == MINUS:
-            self.eat(MINUS)
+        elif token.type == T.MINUS:
+            self.eat(T.MINUS)
             node = UnaryOp(token, self.factor())
             return node
-        elif token.type == INTEGER:
-            self.eat(INTEGER)
+        elif token.type == T.INTEGER:
+            self.eat(T.INTEGER)
             return Num(token)
-        elif token.type == LPAREN: # ( 
-            self.eat(LPAREN)
+        elif token.type == T.LPAREN: # ( 
+            self.eat(T.LPAREN)
             node = self.expr() # expr
-            self.eat(RPAREN) # )
+            self.eat(T.RPAREN) # )
             return node
         
     def term(self):
@@ -85,12 +76,14 @@ class Parser:
         # factor * factor | factor / factor
         node = self.factor()
 
-        while self.current_token.type in (MUL, DIV):
+        while self.current_token.type in (T.MUL, T.DIV, T.MOD):
             token = self.current_token
-            if token.type == MUL:
-                self.eat(MUL)
-            elif token.type == DIV:
-                self.eat(DIV)
+            if token.type == T.MUL:
+                self.eat(T.MUL)
+            elif token.type == T.DIV:
+                self.eat(T.DIV)
+            elif token.type == T.MOD:
+                self.eat(T.MOD)
 
             node = BinOp(left=node, op=token, right=self.factor())
             #Example : node = BinOp(left=Num(3), op=*, right=Num(4))
@@ -107,12 +100,12 @@ class Parser:
         """
         node = self.term()
 
-        while self.current_token.type in (PLUS, MINUS):
+        while self.current_token.type in (T.PLUS, T.MINUS):
             token = self.current_token
-            if token.type == PLUS:
-                self.eat(PLUS)
-            elif token.type == MINUS:
-                self.eat(MINUS)
+            if token.type == T.PLUS:
+                self.eat(T.PLUS)
+            elif token.type == T.MINUS:
+                self.eat(T.MINUS)
 
             node = BinOp(left=node, op=token, right=self.term())
 
@@ -125,8 +118,14 @@ class Parser:
 class NodeVisitor:
     # This class is to traverse or visit nodes in AST using the visitor design pattern  
     def visit(self, node):
+        # 1. Construct the method name dynamically , (e.g., 'BinOp', 'Num'),
+        #    method name becomes a string like 'visit_BinOp', 'visit_Num'
         method_name = 'visit_' + type(node).__name__
+
+        # 2. Return the method object corresbonding to the specific node type
+        # if such a method doesn't exist, it returns the default fallback method
         visitor = getattr(self, method_name, self.generic_visit)
+        
         return visitor(node)
 
     def generic_visit(self, node):
@@ -152,10 +151,11 @@ class Interpreter(NodeVisitor):
         # elif node.op.type == DIV:
         #     return left_val / right_val
         operations = {
-                PLUS: lambda x , y : x + y,
-                MINUS: lambda x , y : x - y ,
-                MUL : lambda x , y : x * y,
-                DIV : lambda x , y : x / y
+            T.PLUS: lambda x, y: x + y,
+            T.MINUS: lambda x, y: x - y,
+            T.MUL: lambda x, y: x * y,
+            T.DIV: lambda x, y: x / y,
+            T.MOD: lambda x ,y: x % y
         }
         result = operations[node.op.type](left_val, right_val)
         print(f"BinOp result: {result}")
@@ -164,9 +164,9 @@ class Interpreter(NodeVisitor):
     def visit_UnaryOp(self, node):
         print(f"Visiting UnaryOp with op: {node.op.type}")
         op = node.op.type
-        if op == PLUS :
+        if op == T.PLUS :
             result =  +1 * self.visit(node.expr)
-        elif op == MINUS:
+        elif op == T.MINUS:
             result =  -1 * self.visit(node.expr)
         print(f"UnaryOp result: {result}")
         return result
