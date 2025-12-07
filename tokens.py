@@ -10,3 +10,5 @@ class TokenType(Enum):
     RPAREN = 'RPAREN'
     EOF = 'EOF'
     MOD = 'MOD'
+    POWER = 'POWER'
+    GREATER = 'GREATER'

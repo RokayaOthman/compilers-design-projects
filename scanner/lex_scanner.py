@@ -80,7 +80,7 @@ class Scanner:
         right = 0
         len_str = len(stringCode)
         tokens = []
-        double_ops = ['==', '<=', '>=', '!=', '&&', '||']
+        double_ops = ['==', '<=', '>=', '!=', '&&', '||', '**', '--', '++']
 
         # the main loop
         while right < len_str:
@@ -199,6 +199,9 @@ class Lexer :
                     self.tokens.append(Token(token.lexeme, T.LPAREN))
                 elif token.lexeme == ')':
                     self.tokens.append(Token(token.lexeme, T.RPAREN))
+                elif token.lexeme == '**':
+                    self.tokens.append(Token(token.lexeme, T.POWER))
+                
                 
             
             # Add end-of-file token

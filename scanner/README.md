@@ -98,3 +98,16 @@ This project demonstrates how a scanner can be implemented using basic Python lo
    ```
 3. View the tokens printed in your terminal.
 
+
+--
+## parsing :
+** grammar ** 
+program      : function 
+function     : "int" ID "(" ")" "{" statement "}"
+statement    : "return" expr ";"
+
+expr         : term ((PLUS | MINUS) term) *
+term         : factor ((MUL | DIV | MOD ) factor) *
+factor       : (PLUS | MINUS) factor | power 
+power        : atom (POWER power) ?
+atom         : INTEGER | LPARENTH expr RPAREN
