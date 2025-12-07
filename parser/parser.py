@@ -7,6 +7,22 @@ from scanner.lex_scanner import Lexer
 class AST:
     pass
 
+class Return:
+    def __init__(self, expr):
+        self.expr = expr
+
+# function : "int" IDENTIFIER "("  ")"  "{" statement "}" 
+class Function:
+    def __init__(self, name, body):
+        self.name = name
+        self.body = body 
+
+# program : function 
+class Program:
+    def __init__(self, function):
+        self.function = function
+
+
 class BinOp:
     # constructor
     def __init__(self, left, op, right) :
@@ -34,7 +50,46 @@ class Parser:
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
     
-    def error(self):
+    def parse_program(self):
+        func = self.parse_function()
+        return Program(func)
+
+    # every self.eat( ) call is a checkpoint , if the current token doesnt match what is expected
+    # the parser should fail immediately with a clear error
+
+    def parse_function(self):
+        # expect: "int" IDENTIFIER "(" ")" "{" statement "}"
+        self.eat(T.INT)
+        token = self.current_token
+        self.eat(T.IDENTIFIER)
+        func_name = token.value
+
+        self.eat(T.LPAREN)
+        self.eat(T.RPAREN)
+
+        self.eat(T.LBRACE)
+
+        body = self.parse_statement()
+
+        self.eat(T.RBRACE)
+
+        return Function(func_name, body)
+
+
+
+    def parse_statement(self):
+        if self.current_token.type == T.RETURN:
+            self.eat(T.RETURN)
+            expr_node = self.expr()
+            self.eat(T.SEMI)
+            return Return(expr_node)
+        else:
+            self.error("Expected 'return' statement")
+
+
+
+
+    def error(self, message=None):
         raise Exception('Invalid syntax')
 
     def eat(self, token_type):
@@ -47,7 +102,8 @@ class Parser:
             self.current_token = self.lexer.get_next_token()
             
         else:
-            self.error()
+            self.error("there is a syntax error")
+            sys.exit(1)
     
     def atom (self) :
         token = self.current_token
@@ -129,7 +185,7 @@ class Parser:
         return node
     
     def parse(self):
-        return self.expr()
+        return self.parse_program()
 
 
 class NodeVisitor:
@@ -152,6 +208,17 @@ class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser 
    
+    def visit_Program(self, node):
+        return self.visit(node.function)
+    
+    def visit_Function(self, node):
+        return self.visit(node.body)
+    
+    def visit_Return(self, node):
+        return self.visit(node.expr)
+
+
+
     def visit_BinOp(self, node):
         # Post-order: Visit children → process node
         print(f"Visiting BinOp with op: {node.op.type}")
@@ -199,6 +266,7 @@ class Interpreter(NodeVisitor):
     def interpret(self):
         tree = self.parser.parse()
         return self.visit(tree)
+    
 
 def main():
 
