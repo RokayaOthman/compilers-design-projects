@@ -25,6 +25,16 @@ class Block:
     def __init__(self, statements):
         self.statements = statements
 
+class Var:
+    def __init__(self, token):
+        self.token = token
+        self.name = token.value
+
+class Assign:
+    def __init__(self, left, right):
+        self.left = left # var node
+        self.right = right # expr  , Num(5)
+
 class Return:
     def __init__(self, expr):
         self.expr = expr
@@ -118,11 +128,15 @@ class Parser:
             self.error("there is a syntax error")
             sys.exit(1)
     
+    # smallest meaningful building block of an expression , you cant break down any further
     def atom (self) :
         token = self.current_token
         if token.type == T.INTEGER:
             self.eat(T.INTEGER)
             return Num(token)
+        elif token.type == T.IDENTIFIER:
+            self.eat(T.IDENTIFIER)
+            return Var(token)
         elif token.type == T.LPAREN: # ( 
             self.eat(T.LPAREN)
             node = self.expr() # expr
