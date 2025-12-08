@@ -3,7 +3,7 @@ import os
 # Add the parent directory to Python path so it can find the scanner module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tokens import TokenType as T
-from scanner.lex_scanner import Lexer
+from scanner.lex_scanner import Lexer, Token
 class AST:
     pass
 
@@ -63,6 +63,7 @@ class Num:
 
 
 class Parser:
+
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
@@ -101,15 +102,27 @@ class Parser:
 
 
     def parse_statement(self):
-        if self.current_token.type == T.RETURN:
+        token = self.current_token
+        
+        # Handle assignment: x = expr;
+        if token.type == T.IDENTIFIER:
+            next_token = self.lexer.peek()
+            if next_token and next_token.type == T.ASSIGN:
+                var_token = self.current_token  # Save the original token
+                self.eat(T.IDENTIFIER)
+                self.eat(T.ASSIGN)
+                expr_node = self.expr()
+                self.eat(T.SEMI)
+                return Assign(Var(var_token), expr_node)  # Use saved token
+        
+        # Handle return statement
+        if token.type == T.RETURN:
             self.eat(T.RETURN)
             expr_node = self.expr()
             self.eat(T.SEMI)
             return Return(expr_node)
-        else:
-            self.error("Expected 'return' statement")
-
-
+        
+        self.error(f"Unexpected token: {token.type}")
 
 
     def error(self, message=None):
@@ -234,6 +247,7 @@ class NodeVisitor:
 class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser 
+        self.variables = {}
    
     def visit_Program(self, node):
         return self.visit(node.function)
@@ -242,11 +256,29 @@ class Interpreter(NodeVisitor):
         return self.visit(node.body)
     
     def visit_Block(self, node):
+        print(f"Block has {len(node.statements)} statements")
         result = None
-        for statement in node.statements:
+        for i, statement in enumerate(node.statements):
+            print(f"Visiting statement {i}: {type(statement).__name__}")
             result = self.visit(statement)
         return result
-    
+
+    def visit_Assign(self, node):
+        print(f"ASSIGN: {node.left.name}")
+        var_name = node.left.name
+        value = self.visit(node.right)
+        self.variables[var_name] = value
+        return value
+
+    def visit_Var(self, node):
+        var_name = node.name
+        if var_name in self.variables:
+            return self.variables[var_name]
+        else:
+            raise Exception(f"Undefined variable: {var_name}")
+           
+
+
     def visit_Return(self, node):
         return self.visit(node.expr)
 
@@ -298,10 +330,44 @@ class Interpreter(NodeVisitor):
         tree = self.parser.parse()
         return self.visit(tree)
     
+def print_ast(node, indent=0):
+    """Recursively print the AST structure for debugging."""
+    prefix = "  " * indent
+    # Print node type and key attributes
+    if isinstance(node, Var):
+        print(f"{prefix}Var(name='{node.name}')")
+    elif isinstance(node, Num):
+        print(f"{prefix}Num(value={node.value})")
+    elif isinstance(node, BinOp):
+        print(f"{prefix}BinOp(op={node.op.type})")
+    elif isinstance(node, Assign):
+        print(f"{prefix}Assign")
+    elif isinstance(node, Return):
+        print(f"{prefix}Return")
+    elif isinstance(node, Block):
+        print(f"{prefix}Block (statements: {len(node.statements)})")
+    elif isinstance(node, Function):
+        print(f"{prefix}Function(name='{node.name}')")
+    elif isinstance(node, Program):
+        print(f"{prefix}Program")
+    else:
+        print(f"{prefix}{type(node).__name__}")
+
+    # Recurse into children
+    if hasattr(node, '__dict__'):
+        for attr, value in node.__dict__.items():
+            if isinstance(value, AST):
+                print(f"{prefix}  └─ {attr}:")
+                print_ast(value, indent + 2)
+            elif isinstance(value, list):
+                if value and all(isinstance(item, AST) for item in value):
+                    print(f"{prefix}  └─ {attr} [{len(value)}]:")
+                    for item in value:
+                        print_ast(item, indent + 2)
 
 def main():
 
-    filepath = "../scanner/cfile.c"
+    filepath = "../scanner/cfile.txt"
     if not os.path.exists(filepath):
         print(f"Error: File '{filepath}' not found.")
         return
@@ -315,6 +381,11 @@ def main():
     result = interpreter.interpret()
     print(result)
 
+
+
+    
+    
+    
 
 if __name__ == '__main__':
     main()
