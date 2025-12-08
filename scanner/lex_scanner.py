@@ -201,9 +201,21 @@ class Lexer :
                     self.tokens.append(Token(token.lexeme, T.RPAREN))
                 elif token.lexeme == '**':
                     self.tokens.append(Token(token.lexeme, T.POWER))
-                
-                
-            
+                elif token.lexeme == ';':
+                    self.tokens.append(Token(token.lexeme, T.SEMI))
+                elif token.lexeme == 'int':
+                    self.tokens.append(Token(token.lexeme, T.INT))
+                elif token.lexeme == 'return':
+                    self.tokens.append(Token(token.lexeme, T.RETURN))
+                elif token.lexeme == '{':
+                    self.tokens.append(Token(token.lexeme, T.LBRACE))
+                elif token.lexeme == '}':
+                    self.tokens.append(Token(token.lexeme, T.RBRACE))
+                elif Scanner.valid_identifier(token.lexeme) :
+                    self.tokens.append(Token(token.lexeme, T.IDENTIFIER))
+                elif token.lexeme == '=':
+                    self.tokens.append(Token(token.lexeme, T.ASSIGN))
+                    
             # Add end-of-file token
             self.tokens.append(Token('', T.EOF))
             self.pos = 0

@@ -7,9 +7,12 @@ from scanner.lex_scanner import Lexer
 class AST:
     pass
 
-class Return:
-    def __init__(self, expr):
-        self.expr = expr
+    
+# program : function 
+class Program:
+    def __init__(self, function):
+        self.function = function
+
 
 # function : "int" IDENTIFIER "("  ")"  "{" statement "}" 
 class Function:
@@ -17,11 +20,15 @@ class Function:
         self.name = name
         self.body = body 
 
-# program : function 
-class Program:
-    def __init__(self, function):
-        self.function = function
+# a Block is a node that holds multiple statements
+class Block:
+    def __init__(self, statements):
+        self.statements = statements
 
+class Return:
+    def __init__(self, expr):
+        self.expr = expr
+    
 
 class BinOp:
     # constructor
@@ -68,13 +75,19 @@ class Parser:
         self.eat(T.RPAREN)
 
         self.eat(T.LBRACE)
-
-        body = self.parse_statement()
-
+        
+        body = self.parse_block()
         self.eat(T.RBRACE)
-
         return Function(func_name, body)
 
+
+    def parse_block(self):
+        statements = []
+        # this loops until it hits } , collecting all statements
+        while self.current_token.type != T.RBRACE:
+            # parse one statement and add it to the list
+            statements.append(self.parse_statement())
+        return Block(statements)
 
 
     def parse_statement(self):
@@ -213,6 +226,12 @@ class Interpreter(NodeVisitor):
     
     def visit_Function(self, node):
         return self.visit(node.body)
+    
+    def visit_Block(self, node):
+        result = None
+        for statement in node.statements:
+            result = self.visit(statement)
+        return result
     
     def visit_Return(self, node):
         return self.visit(node.expr)
