@@ -217,8 +217,6 @@ class Interpreter(NodeVisitor):
     def visit_Return(self, node):
         return self.visit(node.expr)
 
-
-
     def visit_BinOp(self, node):
         # Post-order: Visit children → process node
         print(f"Visiting BinOp with op: {node.op.type}")
@@ -270,19 +268,19 @@ class Interpreter(NodeVisitor):
 
 def main():
 
-    while True:
-        try:
-                text = input('input> ')
-        except EOFError:
-            break
-        if not text:
-            continue
+    filepath = "../scanner/cfile.c"
+    if not os.path.exists(filepath):
+        print(f"Error: File '{filepath}' not found.")
+        return
+    
+    with open(filepath , "r") as f:
+        text = f.read()
 
-        lexer = Lexer(text)
-        parser = Parser(lexer)
-        interpreter = Interpreter(parser)
-        result = interpreter.interpret()
-        print(result)
+    lexer = Lexer(text)
+    parser = Parser(lexer)
+    interpreter = Interpreter(parser)
+    result = interpreter.interpret()
+    print(result)
 
 
 if __name__ == '__main__':
