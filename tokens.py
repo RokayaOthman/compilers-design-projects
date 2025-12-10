@@ -19,3 +19,24 @@ class TokenType(Enum):
     SEMI = 'SEMI'
     IDENTIFIER = 'IDENTIFIER'
     ASSIGN = '='
+
+
+TOKEN_DESCRIPTIONS = {
+    TokenType.INT: "keyword",
+    TokenType.RETURN: "keyword",
+    TokenType.IDENTIFIER: "identifier",
+    TokenType.INTEGER: "integer",
+    TokenType.PLUS: "operator",
+    TokenType.MINUS: "operator",
+    TokenType.MUL: "operator",
+    TokenType.DIV: "operator",
+    TokenType.MOD: "operator",
+    TokenType.POWER: "operator",
+    TokenType.LPAREN: "left parenthesis",
+    TokenType.RPAREN: "right parenthesis",
+    TokenType.LBRACE: "left brace",
+    TokenType.RBRACE: "right brace",
+    TokenType.SEMI: "semicolon",
+    TokenType.ASSIGN: "assignment operator",
+    TokenType.EOF: "end of file"
+}

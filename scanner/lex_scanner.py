@@ -179,7 +179,7 @@ class Lexer :
     
     def __init__(self, text):
             tokens = Scanner.scan_tokens(text)
-            print(f"Scanner tokens: {[(t.lexeme, t.type) for t in tokens]}")  # DEBUG
+           # print(f"Scanner tokens: {[(t.lexeme, t.type) for t in tokens]}")  # DEBUG
             self.tokens = []
             for token in tokens:
                 # Map the scanner token types to parser token types
@@ -215,7 +215,7 @@ class Lexer :
                     self.tokens.append(Token(token.lexeme, T.IDENTIFIER))
                 elif token.lexeme == '=':
                     self.tokens.append(Token(token.lexeme, T.ASSIGN))
-                    
+
             # Add end-of-file token
             self.tokens.append(Token('', T.EOF))
             self.pos = 0
@@ -228,4 +228,13 @@ class Lexer :
             return token
         else:
             # Return EOF token if we've reached the end
+            return Token('', T.EOF)
+
+    def peek(self, n=1):
+        """return the next token without consuming it"""
+        # n : how many tokens ahead you want to look
+        next_pos = self.pos + n - 1
+        if next_pos < len(self.tokens):
+            return self.tokens[next_pos]
+        else :
             return Token('', T.EOF)
