@@ -1,13 +1,18 @@
 import sys
 import os
-# Add the parent directory to Python path so it can find the scanner module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from tokens import TokenType as T
-from scanner.lex_scanner import Lexer, Token
+from tokens import TokenType as T , TOKEN_DESCRIPTIONS
+from scanner.lex_scanner import Lexer, Token, Scanner
 class AST:
     pass
 
-    
+class ParserError(Exception) :
+# exception raised for syntax errors in the parser
+    def __init__(self, message, token=None):
+        self.message = message
+        self.token = token
+        super().__init__(self.message)
+   
 # program : function 
 class Program:
     def __init__(self, function):
@@ -39,12 +44,11 @@ class Return:
     def __init__(self, expr):
         self.expr = expr
     
-
 class BinOp:
     # constructor
     def __init__(self, left, op, right) :
         self.left = left
-        self.token = self.op = op
+        self.op = op # = self.token
         self.right = right
 
     def __str__(self):
@@ -52,15 +56,13 @@ class BinOp:
 
 class UnaryOp():
     def __init__(self, op, expr):
-        self.token = self.op = op 
+        self.token = self.op 
         self.expr = expr # represents an AST node
-
 
 class Num:
     def __init__(self,token):
         self.token = token
         self.value = token.value
-
 
 class Parser:
 
@@ -91,15 +93,15 @@ class Parser:
         self.eat(T.RBRACE)
         return Function(func_name, body)
 
-
     def parse_block(self):
         statements = []
         # this loops until it hits } , collecting all statements
         while self.current_token.type != T.RBRACE:
             # parse one statement and add it to the list
             statements.append(self.parse_statement())
+        if not statements or not isinstance(statements[-1], Return):
+            self.error("Function body must end with a return statement")
         return Block(statements)
-
 
     def parse_statement(self):
         token = self.current_token
@@ -122,11 +124,14 @@ class Parser:
             self.eat(T.SEMI)
             return Return(expr_node)
         
-        self.error(f"Unexpected token: {token.type}")
+        self.error(f"Unexpected token")
 
 
     def error(self, message=None):
-        raise Exception('Invalid syntax')
+        if message is None :
+            message = f"Unexpected token"
+        raise ParserError(message, self.current_token)
+    
 
     def eat(self, token_type):
         ##compare current token type with 
@@ -138,8 +143,8 @@ class Parser:
             self.current_token = self.lexer.get_next_token()
             
         else:
-            self.error("there is a syntax error")
-            sys.exit(1)
+            self.error(f"Expected '{token_type}', got '{self.current_token.type}'")
+            
     
     # smallest meaningful building block of an expression , you cant break down any further
     def atom (self) :
@@ -164,7 +169,7 @@ class Parser:
             self.eat(T.POWER) # ← Consume the ** operator
             node = BinOp(left=node, op=token, right=self.power())
         return node
-    
+    # 2 + 3 ** 4 ** 5 + 1
     def factor(self):
         """OLD : factor : INTEGER | (expr)"""
         """ UPDATED : factor : (PLUS | MINUS) factor | power """
@@ -225,8 +230,10 @@ class Parser:
         return node
     
     def parse(self):
-        return self.parse_program()
-
+        program_node =  self.parse_program()
+        if self.current_token.type != T.EOF:
+            self.error("Unexpected tokens after end of program")
+        return program_node
 
 class NodeVisitor:
     # This class is to traverse or visit nodes in AST using the visitor design pattern  
@@ -256,10 +263,10 @@ class Interpreter(NodeVisitor):
         return self.visit(node.body)
     
     def visit_Block(self, node):
-        print(f"Block has {len(node.statements)} statements")
+        #print(f"Block has {len(node.statements)} statements")
         result = None
         for i, statement in enumerate(node.statements):
-            print(f"Visiting statement {i}: {type(statement).__name__}")
+            #print(f"Visiting statement {i+1}: {type(statement).__name__}")
             result = self.visit(statement)
         return result
 
@@ -284,33 +291,37 @@ class Interpreter(NodeVisitor):
 
     def visit_BinOp(self, node):
         # Post-order: Visit children → process node
-        print(f"Visiting BinOp with op: {node.op.type}")
+        #print(f"Visiting BinOp with op: {node.op.type}")
         left_val = (self.visit(node.left))
-        print(f"left value: {left_val} ")
+        #print(f"left value: {left_val} ")
         right_val = (self.visit(node.right))
-        print(f"right value: {right_val}")
-        # if node.op.type == PLUS:
-        #     return left_val + right_val
-        # elif node.op.type == MINUS:
-        #     return left_val - right_val
-        # elif node.op.type == MUL:
-        #     return left_val * right_val
-        # elif node.op.type == DIV:
-        #     return left_val / right_val
-        operations = {
-            T.PLUS: lambda x, y: x + y,
-            T.MINUS: lambda x, y: x - y,
-            T.MUL: lambda x, y: x * y,
-            T.DIV: lambda x, y: x / y,
-            T.MOD: lambda x,y: x % y,
-            T.POWER: lambda x, y: x ** y
-        }
-        result = operations[node.op.type](left_val, right_val)
-        print(f"BinOp result: {result}")
-        return result
+        op_type = node.op.type
+
+        #print(f"right value: {right_val}")
+        
+        if op_type == T.PLUS:
+            return left_val + right_val
+        elif op_type == T.MINUS:
+            return left_val - right_val
+        elif op_type == T.MUL:
+            return left_val * right_val
+        elif op_type == T.DIV:
+            if right_val == 0: 
+                raise Exception("Runtime Error: Division by zero")
+            return left_val / right_val
+        elif op_type == T.MOD:
+            if right_val == 0:
+                raise Exception("Runtime Error: Modulo by zero")
+            return left_val % right_val
+        elif op_type == T.POWER:
+            return left_val ** right_val
+        else:
+            raise Exception(f"Unknown operator: {op_type}")
+        
+        
     
     def visit_UnaryOp(self, node):
-        print(f"Visiting UnaryOp with op: {node.op.type}")
+        #print(f"Visiting UnaryOp with op: {node.op.type}")
         op = node.op.type
         if op == T.PLUS :
             result =  +1 * self.visit(node.expr)
@@ -321,66 +332,78 @@ class Interpreter(NodeVisitor):
                 
     
     def visit_Num(self, node):
-        print(f"Visiting Num: {node.value}")
+        #print(f"Visiting Num: {node.value}")
         result = int(node.value)
-        print(f"Num result: {result}")
+        #print(f"Num result: {result}")
         return result
     
     def interpret(self):
         tree = self.parser.parse()
         return self.visit(tree)
-    
-def print_ast(node, indent=0):
-    """Recursively print the AST structure for debugging."""
-    prefix = "  " * indent
-    # Print node type and key attributes
-    if isinstance(node, Var):
-        print(f"{prefix}Var(name='{node.name}')")
-    elif isinstance(node, Num):
-        print(f"{prefix}Num(value={node.value})")
-    elif isinstance(node, BinOp):
-        print(f"{prefix}BinOp(op={node.op.type})")
-    elif isinstance(node, Assign):
-        print(f"{prefix}Assign")
-    elif isinstance(node, Return):
-        print(f"{prefix}Return")
-    elif isinstance(node, Block):
-        print(f"{prefix}Block (statements: {len(node.statements)})")
-    elif isinstance(node, Function):
-        print(f"{prefix}Function(name='{node.name}')")
-    elif isinstance(node, Program):
-        print(f"{prefix}Program")
-    else:
-        print(f"{prefix}{type(node).__name__}")
 
-    # Recurse into children
-    if hasattr(node, '__dict__'):
-        for attr, value in node.__dict__.items():
-            if isinstance(value, AST):
-                print(f"{prefix}  └─ {attr}:")
-                print_ast(value, indent + 2)
-            elif isinstance(value, list):
-                if value and all(isinstance(item, AST) for item in value):
-                    print(f"{prefix}  └─ {attr} [{len(value)}]:")
-                    for item in value:
-                        print_ast(item, indent + 2)
+def interactie_menu_loop(filepath):
+    while True:
+        print("1. Print the tokens")
+        print("2. Compile the file")
+        print("3. Exit")
+        choice = input("Enter an option (1-3): ")
+        
+        if choice == "1" or choice == "2":
+            # Both options need to read the file
+            if not os.path.exists(filepath):
+                print(f"Error: File '{filepath}' not found.")
+                continue  # Don't return — stay in menu
+            
+            with open(filepath, "r") as f:
+                text = f.read()
+            
+            if choice == "1":
+                # Use Lexer to get tokens
+                lexer = Lexer(text)
+                tokens = []
+                token = lexer.get_next_token()
+                while token.type != T.EOF:
+                    tokens.append(token)
+                    token = lexer.get_next_token()
+                
+                print("Scanner tokens:")
+                for t in tokens:
+                    desc = TOKEN_DESCRIPTIONS.get(t.type, "unknown")
+                    print(f" '{t.lexeme}' -> {desc}")
+                    
+            elif choice == "2":
+                try:
+                    lexer = Lexer(text)
+                    parser = Parser(lexer)
+                    interpreter = Interpreter(parser)
+                    result = interpreter.interpret()
+                    print(f"✅ Compiled successfully! Result: {result}")
+                except ParserError as e:
+                    print(f"❌ Syntax Error: {e.message}")
+                except Exception as e:  # ← Add this to catch runtime errors
+                    print(f"💥 Runtime Error: {e}")
+                        
+        elif choice == "3":
+            break
+        else:
+            print("⚠️  Invalid choice, try again.")
 
 def main():
-
-    filepath = "../scanner/cfile.txt"
-    if not os.path.exists(filepath):
-        print(f"Error: File '{filepath}' not found.")
-        return
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    filepath = os.path.join(project_root, "cfile.txt")
+    # if not os.path.exists(filepath):
+    #     print(f"Error: File '{filepath}' not found.")
+    #     return
     
-    with open(filepath , "r") as f:
-        text = f.read()
+    # with open(filepath , "r") as f:
+    #     text = f.read()
 
-    lexer = Lexer(text)
-    parser = Parser(lexer)
-    interpreter = Interpreter(parser)
-    result = interpreter.interpret()
-    print(result)
-
+    # lexer = Lexer(text)
+    # parser = Parser(lexer)
+    # interpreter = Interpreter(parser)
+    # result = interpreter.interpret()
+    # print(result)
+    interactie_menu_loop(filepath)
 
 
     
