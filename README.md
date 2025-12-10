@@ -14,12 +14,3 @@ This project includes a **lexer**, **recursive descent parser**, **AST**, and **
 - **Interactive menu**: tokenize, compile, or exit
 - **Human-friendly token output** (e.g., `'(' → left parenthesis`)
 
-## Project Structure
-compiler-design-lab/
-├── parser/ # Main compiler code
-│ ├── parser.py # Lexer, Parser, Interpreter
-│ └── ...
-├── scanner/
-│ └── lex_scanner.py # Tokenizer
-├── tokens.py # Token types and descriptions
-└── cfile.txt # Sample input file
