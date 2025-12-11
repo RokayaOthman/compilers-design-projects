@@ -14,3 +14,26 @@ This project includes a **lexer**, **recursive descent parser**, **AST**, and **
 - **Interactive menu**: tokenize, compile, or exit
 - **Human-friendly token output** (e.g., `'(' → left parenthesis`)
 
+## Full grammar rules :
+
+<program>      ::= <function>
+
+<function>     ::= "int" <identifier> "(" ")" "{" <block> "}"
+
+<block>        ::= <statement>+
+
+<statement>    ::= <assignment> | <return_stmt>
+
+<assignment>   ::= <identifier> "=" <expr> ";"
+
+<return_stmt>  ::= "return" <expr> ";"
+
+<expr>         ::= <term> ( ("+" | "-") <term> )*
+
+<term>         ::= <factor> ( ("*" | "/" | "%") <factor> )*
+
+<factor>       ::= ("+" | "-") <factor> | <power>
+
+<power>        ::= <atom> ( "**" <power> )?
+
+<atom>         ::= <integer> | <identifier> | "(" <expr> ")"
